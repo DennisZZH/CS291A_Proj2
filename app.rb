@@ -19,10 +19,22 @@ get '/files/' do
   digests = []
   
   all_files.each do |file|
-    downloaded = file.download
-    downloaded.rewind
-    file_data = downloaded.read
-    digests.append((Digest::SHA256.hexdigest file_data).downcase)
+   file_name = file.name
+   file_name_split = file_name.split('/')
+
+   if file_name_split.length == 3 and 
+      file_name_split[0].length == 2 and
+      file_name_split[1].length == 2 and
+      file_name_split.join.length == 64
+
+      digest = file_name_split.join
+
+      if check_digest(digest)
+        digests.push digest
+      end
+   
+    end
+
   end
 
   sorted_digests = digests.sort
@@ -146,7 +158,7 @@ delete '/files/:digest' do
 end
 
 def check_digest(digest)
-  if digest.size == 64 and digest =~ /^[0-9a-fA-F]+$/
+  if digest.size == 64 and digest =~ /^[0-9a-f]+$/
     return true
   else
     return false
